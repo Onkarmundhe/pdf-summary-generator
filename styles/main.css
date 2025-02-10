@@ -12,17 +12,24 @@
 
 /* Header styling */
 [data-testid="stImage"] {
-    margin-bottom: 1rem;
-    padding: 10px;
+    margin-bottom: 0;
+    padding: 5px;
 }
 
 h1 {
     color: #2e4057;
     font-weight: 600;
+    margin-left: -20px;
 }
 
 /* Ensure columns align properly */
 [data-testid="column"] {
     display: flex;
     align-items: center;
+    gap: 0;
+}
+
+/* Adjust spacing for the first column */
+[data-testid="column"]:first-child {
+    padding-right: 0;
 } 
