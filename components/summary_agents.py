@@ -35,7 +35,7 @@ class GroqAgent:
                     messages=[{"role": "user", "content": prompt}],
                     model="deepseek-r1-distill-llama-70b",
                     temperature=0.3,
-                    max_tokens=2000,
+                    max_tokens=4096,
                 )
                 
                 return completion.choices[0].message.content
@@ -43,13 +43,20 @@ class GroqAgent:
             st.error(f"Error generating long summary: {str(e)}")
             return ""
 
+# Add or modify the Gemini API configuration
+GEMINI_MAX_TOKENS = 8192
+
 class GeminiAgent:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("Gemini API key not found in environment variables")
         genai.configure(api_key=self.api_key)
-        self.model = GenerativeModel('gemini-2.0-flash')
+        self.model = GenerativeModel('gemini-pro', 
+                                    generation_config={
+                                        'max_output_tokens': GEMINI_MAX_TOKENS,
+                                        'temperature': 0.7
+                                    })
     
     async def generate_short_summary(self, long_summary: str) -> str:
         try:
