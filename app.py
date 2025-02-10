@@ -20,7 +20,14 @@ st.set_page_config(
 # Apply custom styles
 apply_custom_styles()
 
+def load_css():
+    with open('styles/main.css') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
 async def main():
+    # Load CSS first
+    load_css()
+    
     # Show header
     show_header()
     
