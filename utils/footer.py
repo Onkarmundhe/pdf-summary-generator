@@ -6,7 +6,6 @@ def show_footer():
         """
         <div class="footer">
             <p style='font-size: 0.8rem; color: #666;'>
-                PDF Summary App | Powered by Groq & Gemini
                 <br/>
                 <span style='font-size: 0.7rem;'>
                     Built with Streamlit ❤️
