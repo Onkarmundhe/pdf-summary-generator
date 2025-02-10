@@ -5,7 +5,7 @@ def show_footer():
     st.markdown(
         """
         <div class="footer">
-            <p style='font-size: 0.8rem; color: #666;'>
+            <p style='font-size: 1rem; color: #666;'>
                 <br/>
                 <span style='font-size: 0.7rem;'>
                     Built with Streamlit ❤️
