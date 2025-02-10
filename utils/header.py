@@ -2,12 +2,11 @@ import streamlit as st
 
 def show_header():
     """Display the application header."""
-    st.markdown(
-        """
-        <h1 class='main-header'>PDF Summary Generator</h1>
-        <p style='text-align: center; color: #666; margin-bottom: 2rem;'>
-            Upload your PDF and get AI-powered summaries using Groq and Gemini
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
+    # Create two columns for logo and title
+    col1, col2 = st.columns([1, 4])
+    
+    with col1:
+        st.image("assets/logo.png", width=80)
+    
+    with col2:
+        st.markdown("<h1 style='margin-top: 15px;'>PDF Summary Generator</h1>", unsafe_allow_html=True)
