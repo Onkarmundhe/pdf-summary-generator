@@ -24,11 +24,12 @@ class GroqAgent:
         self.max_chunk_tokens = 5000  # Safe limit below the 6000 TPM limit
     
     def split_text_into_chunks(self, text: str) -> list[str]:
-        """Split text into chunks based on approximate token count."""
-        # Rough approximation: 1 token ≈ 4 characters
-        chars_per_chunk = self.max_chunk_tokens * 4
+        """Split text into smaller chunks to respect token limits."""
+        # Reduce chunk size for safer processing
+        self.max_chunk_tokens = 2000  # Significantly reduced from 5000
+        chars_per_chunk = self.max_chunk_tokens * 3  # More conservative estimate
         
-        # Split into sentences first (crude approach)
+        # Split into sentences
         sentences = text.replace('\n', ' ').split('. ')
         chunks = []
         current_chunk = []
@@ -56,41 +57,64 @@ class GroqAgent:
             with st.spinner("Generating detailed summary..."):
                 # Split text into chunks
                 chunks = self.split_text_into_chunks(text)
+                chunk_summaries = []
                 
-                if len(chunks) == 1:
-                    # If only one chunk, process it directly
-                    prompt = f"""Please provide a detailed summary of the following text. 
-                    Focus on key points, main arguments, and important details:
+                # Process chunks with progress bar
+                progress_bar = st.progress(0)
+                for i, chunk in enumerate(chunks):
+                    # Show progress
+                    progress = (i + 1) / len(chunks)
+                    progress_bar.progress(progress)
+                    st.info(f"Processing part {i+1} of {len(chunks)}...")
                     
-                    {chunks[0]}
+                    # Process smaller chunks
+                    prompt = f"""Please provide a brief summary of this text segment:
+                    
+                    {chunk}
                     """
                     
-                    completion = self.client.chat.completions.create(
-                        messages=[{"role": "user", "content": prompt}],
+                    # Add delay between chunks to respect rate limits
+                    if i > 0:
+                        time.sleep(3)  # 3 second delay between chunks
+                    
+                    try:
+                        completion = self.client.chat.completions.create(
+                            messages=[{"role": "user", "content": prompt}],
+                            model="deepseek-r1-distill-llama-70b",
+                            temperature=0.3,
+                            max_tokens=1000,  # Reduced token limit for safety
+                        )
+                        chunk_summaries.append(completion.choices[0].message.content)
+                    except Exception as chunk_error:
+                        st.warning(f"Error processing chunk {i+1}. Retrying after delay...")
+                        time.sleep(5)  # Longer delay on error
+                        continue
+                
+                # Clear progress
+                progress_bar.empty()
+                
+                if not chunk_summaries:
+                    return "Failed to generate summary due to processing errors."
+                
+                # Combine summaries in smaller batches if needed
+                if len(chunk_summaries) > 1:
+                    combined_text = " ".join(chunk_summaries)
+                    final_prompt = f"""Create a coherent summary from these segment summaries:
+
+                    {combined_text}
+                    """
+                    
+                    # Final summary with reduced tokens
+                    final_completion = self.client.chat.completions.create(
+                        messages=[{"role": "user", "content": final_prompt}],
                         model="deepseek-r1-distill-llama-70b",
                         temperature=0.3,
-                        max_tokens=2048,
+                        max_tokens=1500,
                     )
                     
-                    return completion.choices[0].message.content
+                    return final_completion.choices[0].message.content
                 
-                # For multiple chunks, process them in a single prompt
-                formatted_chunks = "\n\n".join([f"Part {i+1}:\n{chunk}" for i, chunk in enumerate(chunks)])
-                
-                prompt = f"""Please provide a coherent and detailed summary of the following text which is split into parts. 
-                Consider all parts together and create a unified summary focusing on key points and main arguments:
-
-                {formatted_chunks}
-                """
-                
-                completion = self.client.chat.completions.create(
-                    messages=[{"role": "user", "content": prompt}],
-                    model="deepseek-r1-distill-llama-70b",
-                    temperature=0.3,
-                    max_tokens=2048,
-                )
-                
-                return completion.choices[0].message.content
+                return chunk_summaries[0]
                 
         except Exception as e:
             st.error(f"Error generating long summary: {str(e)}")
