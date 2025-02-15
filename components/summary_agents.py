@@ -68,7 +68,7 @@ class GroqAgent:
                     st.info(f"Processing part {i+1} of {len(chunks)}...")
                     
                     # Process smaller chunks
-                    prompt = f"""Please provide a brief summary of this text segment:
+                    prompt = f"""Please provide a very brief summary of this text segment in 2-3 sentences:
                     
                     {chunk}
                     """
@@ -82,12 +82,12 @@ class GroqAgent:
                             messages=[{"role": "user", "content": prompt}],
                             model="deepseek-r1-distill-llama-70b",
                             temperature=0.3,
-                            max_tokens=1000,  # Reduced token limit for safety
+                            max_tokens=500,  # Further reduced token limit
                         )
                         chunk_summaries.append(completion.choices[0].message.content)
                     except Exception as chunk_error:
                         st.warning(f"Error processing chunk {i+1}. Retrying after delay...")
-                        time.sleep(5)  # Longer delay on error
+                        time.sleep(5)
                         continue
                 
                 # Clear progress
@@ -98,21 +98,53 @@ class GroqAgent:
                 
                 # Combine summaries in smaller batches if needed
                 if len(chunk_summaries) > 1:
-                    combined_text = " ".join(chunk_summaries)
-                    final_prompt = f"""Create a coherent summary from these segment summaries:
+                    # Process summaries in batches of 5
+                    batch_size = 5
+                    final_summaries = []
+                    
+                    for i in range(0, len(chunk_summaries), batch_size):
+                        batch = chunk_summaries[i:i + batch_size]
+                        combined_batch = " ".join(batch)
+                        
+                        st.info(f"Combining summary batch {(i//batch_size) + 1}...")
+                        time.sleep(3)  # Delay between batches
+                        
+                        batch_prompt = f"""Create a coherent summary from these segment summaries in 2-3 sentences:
 
-                    {combined_text}
-                    """
+                        {combined_batch}
+                        """
+                        
+                        try:
+                            batch_completion = self.client.chat.completions.create(
+                                messages=[{"role": "user", "content": batch_prompt}],
+                                model="deepseek-r1-distill-llama-70b",
+                                temperature=0.3,
+                                max_tokens=500,
+                            )
+                            final_summaries.append(batch_completion.choices[0].message.content)
+                        except Exception as batch_error:
+                            st.warning(f"Error processing batch {(i//batch_size) + 1}. Skipping...")
+                            continue
                     
-                    # Final summary with reduced tokens
-                    final_completion = self.client.chat.completions.create(
-                        messages=[{"role": "user", "content": final_prompt}],
-                        model="deepseek-r1-distill-llama-70b",
-                        temperature=0.3,
-                        max_tokens=1500,
-                    )
+                    # If we have multiple final summaries, combine them one last time
+                    if len(final_summaries) > 1:
+                        final_text = " ".join(final_summaries)
+                        final_prompt = f"""Create a final coherent summary from these summaries:
+
+                        {final_text}
+                        """
+                        
+                        time.sleep(3)  # Final delay
+                        final_completion = self.client.chat.completions.create(
+                            messages=[{"role": "user", "content": final_prompt}],
+                            model="deepseek-r1-distill-llama-70b",
+                            temperature=0.3,
+                            max_tokens=1000,
+                        )
+                        
+                        return final_completion.choices[0].message.content
                     
-                    return final_completion.choices[0].message.content
+                    return final_summaries[0]
                 
                 return chunk_summaries[0]
                 
