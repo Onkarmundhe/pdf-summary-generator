@@ -1,12 +1,11 @@
 # PDF Summary Generator 📄
 
-A Streamlit-based web application that generates concise summaries of PDF documents using Groq and Gemini AI models.
+A Streamlit-based web application that generates concise summaries of PDF documents using models from Groq and Gemini.
 
 🔗 [Live Demo](https://pdf-summary-generator-mippvhd8j3oqhpvgmaxuwi.streamlit.app)
 
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.32.0-red.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## Features
 
@@ -14,7 +13,6 @@ A Streamlit-based web application that generates concise summaries of PDF docume
 - 📝 Extracts text from PDF documents
 - 🤖 Generates both detailed and concise summaries
 - 🎨 Clean and intuitive user interface
-- ⚡ Powered by Groq and Gemini AI models
 
 ## Prerequisites
 
@@ -26,7 +24,7 @@ A Streamlit-based web application that generates concise summaries of PDF docume
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/pdf-summary-generator.git
+   git clone https://github.com/Onkarmundhe/pdf-summary-generator.git
    cd pdf-summary-generator
    ```
 
