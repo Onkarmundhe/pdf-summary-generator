@@ -18,7 +18,7 @@ class Summary:
 
 class GroqAgent:
     def __init__(self):
-        self.api_key = st.secrets["GROQ_API_KEY"]
+        self.api_key = os.getenv("GROQ_API_KEY")  # Changed from st.secrets
         if not self.api_key:
             raise ValueError("GROQ API key not found in environment variables")
         self.client = Groq(api_key=self.api_key)
@@ -132,7 +132,7 @@ class GroqAgent:
 
 class GeminiAgent:
     def __init__(self):
-        self.api_key = st.secrets["GEMINI_API_KEY"]
+        self.api_key = os.getenv("GEMINI_API_KEY")  # Changed from st.secrets
         if not self.api_key:
             raise ValueError("Gemini API key not found in environment variables")
         genai.configure(api_key=self.api_key)
