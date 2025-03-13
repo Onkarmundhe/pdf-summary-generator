@@ -22,7 +22,7 @@ class GroqAgent:
         if not self.api_key:
             raise ValueError("GROQ API key not found in environment variables")
         self.client = Groq(api_key=self.api_key)
-        self.max_chunk_tokens = 2000  # Reduced from 5000
+        self.max_chunk_tokens = 2000
 
     def split_text_into_chunks(self, text: str) -> list[str]:
         chars_per_chunk = self.max_chunk_tokens * 3  # Conservative estimate
